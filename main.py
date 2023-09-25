@@ -109,7 +109,7 @@ def process_user_input():
 
 # OpenAI API setup
 def setup_openai_api():
-   openai.api_key = st.secrets.openai_key
+    openai.api_key = st.secrets.openai_key
 
 @st.cache_data
 def split_pdf(input_pdf, chunk_size=3, overlap_lines=5):
