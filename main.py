@@ -155,13 +155,11 @@ def extract_text_from_pdf(file, chunk_size=2, overlap_lines=2):
         return {}
 
 # Function to set up Annoy index
-@st.cache_data
 def setup_annoy(dimension=1536):
     index = AnnoyIndex(dimension, 'angular')
     return index
 
 # Function to create OpenAI embedding
-@st.cache_data
 def create_openai_embedding(text, max_words=300):
     if not text:
         handle_error("Input text is empty or None.")
