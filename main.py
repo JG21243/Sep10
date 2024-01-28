@@ -8,7 +8,7 @@ from langchain.document_loaders import UnstructuredAPIFileLoader
 import sys
 
 st.set_page_config(
-    page_title="Chat with docs, powered by Langchain and Unstructured. Sep 10",
+    page_title="Chat with legal docs, powered by Langchain and Unstructured. Sep 10",
     page_icon="🦙",
     layout="centered",
     initial_sidebar_state="auto",
@@ -35,7 +35,7 @@ def handle_error(e):
 
 # Streamlit setup
 def setup_streamlit():
-    st.title("Chat with PDFs: Where Unstructured Data Meets Langchain 🦙")
+    st.title("Chat with Legal PDFs: Where Unstructured Data Meets Langchain 🦙")
     st.info("""
     📃 Welcome to this interactive Streamlit app! Here, you can query uploaded PDFs in real-time. 
     We leverage cutting-edge NLP technologies like [Langchain](https://docs.langchain.com/docs/), [Unstructured](https://unstructured.io/), and [OpenAI](https://platform.openai.com/docs/) to sift through your documents and fetch the information you need.
