@@ -17,4 +17,6 @@ loader = GoogleDriveLoader(
 
 # Load documents from the specified Google Drive folder
 docs = loader.load()
+# Print the loaded documents
+print(docs)
 
