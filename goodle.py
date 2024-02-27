@@ -5,11 +5,13 @@ folder_id = "1bM-uILBTV_QWmIQ_ohghyrOHfXiZO9zT"
 
 from langchain_community.document_loaders import GoogleDriveLoader
 
+from pathlib import Path
+
 # Initialize the GoogleDriveLoader with the specified paths
 loader = GoogleDriveLoader(
     folder_id="1bM-uILBTV_QWmIQ_ohghyrOHfXiZO9zT",  # Replace with your actual folder ID
-    credentials_path='workspaces/Sep10/credentials.json',
-    token_path='workspaces/Sep10/token.json',
+    credentials_path=Path('/workspaces/Sep10/credentials.json'),
+    token_path=Path('/workspaces/Sep10/token.json'),
     recursive=False  # Optional: configure whether to recursively fetch files from subfolders. Defaults to False.
 )
 
