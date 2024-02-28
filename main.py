@@ -4,7 +4,7 @@ import openai
 import pdfplumber  # Import pdfplumber instead of PyPDF2
 from annoy import AnnoyIndex
 import streamlit as st
-from langchain.document_loaders import UnstructuredAPIFileLoader
+from langchain_community.document_loaders import UnstructuredAPIFileLoader
 import sys
 
 st.set_page_config(
