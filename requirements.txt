@@ -2,3 +2,4 @@ openai
 annoy
 streamlit
 langchain
+pdfplumber
