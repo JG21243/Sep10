@@ -266,7 +266,7 @@ def create_openai_embedding(text, max_words=300):
         embeddings = []
         for chunk in chunks:
             response = client.embeddings.create(
-                model="text-embedding-ada-002",
+                model="text-embedding-3-small",
                 input=chunk
             )
             # Correctly access the embedding based on the example
