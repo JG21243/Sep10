@@ -27,7 +27,6 @@ This project presents an interactive Streamlit application titled "Chat with PDF
 To install the required libraries, run:
 
 ```bash
-bashCopy code
 pip install pdfplumber openai streamlit annoy langchain.document_loaders
 ```
 
