@@ -3,4 +3,4 @@ annoy
 streamlit
 langchain
 pdfplumber
-
+langchain
