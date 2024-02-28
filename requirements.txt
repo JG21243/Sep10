@@ -1,0 +1,4 @@
+openai
+annoy
+streamlit
+langchain
