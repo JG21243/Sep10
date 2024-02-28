@@ -1,10 +1,13 @@
 import logging
 import tempfile
-import openai
+from openai import OpenAI
 import pdfplumber  # Import pdfplumber instead of PyPDF2
 from annoy import AnnoyIndex
 import streamlit as st
 import sys
+from pdfminer.pdfparser import PDFSyntaxError
+
+client = OpenAI.Client()
 
 st.set_page_config(
     page_title="Chat with legal docs, powered by Langchain and Unstructured. Sep 10",
@@ -19,10 +22,16 @@ print("Running on Python version:", sys.version)
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-import pdfplumber
-from pdfminer.pdfparser import PDFSyntaxError
-
 def handle_error(e):
+    """
+    Handle different types of errors and display appropriate error messages.
+
+    Args:
+        e (Exception): The exception object.
+
+    Returns:
+        None
+    """
     if isinstance(e, PDFSyntaxError):
         st.error("The uploaded PDF appears to be corrupt. Please upload a valid file.")
     elif isinstance(e, KeyError):
@@ -34,6 +43,12 @@ def handle_error(e):
 
 # Streamlit setup
 def setup_streamlit():
+    """
+    Set up the Streamlit app layout and display an interactive tutorial.
+
+    Returns:
+        None
+    """
     st.title("Chat with Legal PDFs: Where Unstructured Data Meets Langchain 🦙")
     st.info("""
     📃 Welcome to this interactive Streamlit app! Here, you can query uploaded PDFs in real-time. 
@@ -54,6 +69,16 @@ def setup_streamlit():
 
 # Sidebar setup
 def setup_sidebar():
+    """
+    Set up the sidebar controls and file uploader.
+
+    Returns:
+        file (file object): The uploaded PDF file.
+        submit_button (bool): Whether the submit button was clicked.
+        chunk_size (int): The selected chunk size.
+        overlap_lines (int): The selected number of overlap lines.
+        top_k_results (int): The selected number of top K results.
+    """
     with st.sidebar:
         st.subheader("Controls")
         
@@ -89,11 +114,23 @@ def setup_sidebar():
 
 # Initialize session state
 def init_session_state():
+    """
+    Initialize the session state to store chat messages.
+
+    Returns:
+        None
+    """
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "assistant", "content": "Ask me a question about the documents!"}]
 
 # Render chat history
 def render_chat_history():
+    """
+    Render the chat history in the Streamlit app.
+
+    Returns:
+        None
+    """
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
@@ -103,15 +140,37 @@ def render_chat_history():
 
 # Process user input
 def process_user_input():
+    """
+    Process the user's input and add it to the chat history.
+
+    Returns:
+        None
+    """
     if prompt := st.chat_input("Your question"):
         st.session_state.messages.append({"role": "user", "content": prompt})
 
 # OpenAI API setup
 def setup_openai_api():
-    openai.api_key = st.secrets.openai_key
+    """
+    Set up the OpenAI API.
+
+    Returns:
+        None
+    """
 
 @st.cache_data
 def split_pdf(input_pdf, chunk_size=3, overlap_lines=5):
+    """
+    Split the PDF into chunks and extract text from each chunk.
+
+    Args:
+        input_pdf (file object): The input PDF file.
+        chunk_size (int): The number of consecutive pages to group together into a single text chunk.
+        overlap_lines (int): The number of overlapping lines between chunks.
+
+    Returns:
+        dict: A dictionary containing the text chunks and their corresponding page ranges.
+    """
     with pdfplumber.open(input_pdf) as pdf:  # Use pdfplumber to open the PDF
         num_pages = len(pdf.pages)
         chunks = []
@@ -137,6 +196,17 @@ def split_pdf(input_pdf, chunk_size=3, overlap_lines=5):
 
 @st.cache_data
 def extract_text_from_pdf(file, chunk_size=2, overlap_lines=2):
+    """
+    Extract text from the uploaded PDF file.
+
+    Args:
+        file (file object): The uploaded PDF file.
+        chunk_size (int): The number of consecutive pages to group together into a single text chunk.
+        overlap_lines (int): The number of overlapping lines between chunks.
+
+    Returns:
+        dict: A dictionary containing the text chunks and their corresponding page ranges.
+    """
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tfile:
             tfile.write(file.read())
@@ -155,11 +225,30 @@ def extract_text_from_pdf(file, chunk_size=2, overlap_lines=2):
 
 # Function to set up Annoy index
 def setup_annoy(dimension=1536):
+    """
+    Set up the Annoy index.
+
+    Args:
+        dimension (int): The dimension of the index.
+
+    Returns:
+        AnnoyIndex: The initialized Annoy index.
+    """
     index = AnnoyIndex(dimension, 'angular')
     return index
 
 # Function to create OpenAI embedding
 def create_openai_embedding(text, max_words=300):
+    """
+    Create an OpenAI embedding for the given text.
+
+    Args:
+        text (str): The input text.
+        max_words (int): The maximum number of words in each chunk.
+
+    Returns:
+        list: The OpenAI embedding.
+    """
     if not text:
         handle_error("Input text is empty or None.")
         return None
@@ -169,7 +258,7 @@ def create_openai_embedding(text, max_words=300):
         chunks = [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
         embeddings = []
         for chunk in chunks:
-            response = openai.Embedding.create(
+            response = client.embeddings.create(
                 model="text-embedding-ada-002",
                 input=chunk
             )
@@ -182,14 +271,37 @@ def create_openai_embedding(text, max_words=300):
 
 # Function to upsert to Annoy index
 def upsert_to_annoy(index, i, embedding, text):
+    """
+    Upsert the embedding and text to the Annoy index.
+
+    Args:
+        index (AnnoyIndex): The Annoy index.
+        i (int): The index of the embedding.
+        embedding (list): The embedding vector.
+        text (str): The corresponding text.
+
+    Returns:
+        None
+    """
     index.add_item(i, embedding)
     st.session_state.text_storage[i] = text
 
 
 # Function to query Annoy index
-def query_annoy(index, question_embedding, top_k=3):  # Added top_k parameter
+def query_annoy(index, question_embedding, top_k=3):
+    """
+    Query the Annoy index with the question embedding.
+
+    Args:
+        index (AnnoyIndex): The Annoy index.
+        question_embedding (list): The embedding vector of the question.
+        top_k (int): The number of top results to retrieve.
+
+    Returns:
+        tuple: A tuple containing the query results and their corresponding distances.
+    """
     try:
-        query_results = index.get_nns_by_vector(question_embedding, top_k, include_distances=True)  # Use top_k
+        query_results = index.get_nns_by_vector(question_embedding, top_k, include_distances=True)
         return query_results
     except Exception as e:
         handle_error(f"Error querying Annoy: {e}")
@@ -197,18 +309,37 @@ def query_annoy(index, question_embedding, top_k=3):  # Added top_k parameter
 
 # Function to process query results
 def process_query_results(query_results):
+    """
+    Process the query results and return the context data.
+
+    Args:
+        query_results (tuple): A tuple containing the query results and their corresponding distances.
+
+    Returns:
+        list: The context data.
+    """
     results, scores = query_results
     context_data = []
     for i, result in enumerate(results):
         context_data.append(f"{result}: {scores[i]} - {st.session_state.text_storage[result]}")
     return context_data
 
-# Function to generate an answer
+# Comment
 def generate_answer(context_data, user_question):
+    """
+    Generate an answer using the OpenAI API.
+
+    Args:
+        context_data (list): The context data.
+        user_question (str): The user's question.
+
+    Returns:
+        str: The generated answer.
+    """
     prompt = f"Context: {', '.join(context_data)}\nQuestion: {user_question}\nAnswer:"
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
@@ -226,30 +357,27 @@ def generate_answer(context_data, user_question):
             temperature=0.0,
         )
         # Extract the plain text answer
-        plain_answer = response.choices[0].message['content'].strip()
+        plain_answer = response['choices'][0]['message']['content'].strip()
 
         # Call the new function to format the plain text answer in Markdown
         markdown_answer = format_answer_in_markdown(plain_answer, user_question)
-
 
         return markdown_answer  # Return the Markdown-formatted answer
     except Exception as e:
         handle_error(f"Error generating answer: {e}")
         return None
-
 def format_answer_in_markdown(plain_answer, user_question):
     try:
         # Include the user's original question for context
         prompt = f"Original Question: {user_question}\nAnswer: {plain_answer}\nPlease format the answer in Markdown."
 
         # Make an API call to GPT-3.5 Turbo for Markdown formatting
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo-16k",
             messages=[
                 {
                     "role": "system",
                     "content": "Your role is to enhance the formatting, spelling/grammar, and organization of the provided text to optimize its readability, structure, and clarity. The text provided is an answer generated by an AI assistant to a user query based on the user's uploaded PDF document. Make effective use of Markdown syntax like **bold**, *italics*, and `code` to make the answer easy to read and understand."
-
                 },
                 {
                     "role": "user",
@@ -263,14 +391,15 @@ def format_answer_in_markdown(plain_answer, user_question):
         )
 
         # Extract the Markdown-formatted answer
-        markdown_answer = response.choices[0].message['content'].strip()
+        markdown_answer = response['choices'][0]['message']['content'].strip()
 
         return markdown_answer
 
     except Exception as e:
         handle_error(f"Error in formatting answer in Markdown: {e}")
         return None
-
+    
+    
 # Main function
 def main():
     # Setup code here
