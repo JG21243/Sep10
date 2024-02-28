@@ -8,8 +8,12 @@ import streamlit as st
 import sys
 from pdfminer.pdfparser import PDFSyntaxError
 
+# Access the API key from Streamlit secrets
+openai_api_key = st.secrets["openai"]["api_key"]
+
 # Initialize the beta client
 client = openai.Client()
+
 
 
 st.set_page_config(
