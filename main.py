@@ -368,7 +368,7 @@ def generate_answer(context_data, user_question):
             temperature=0.0,
         )
         # Extract the plain text answer
-        plain_answer = response['choices'][0]['message']['content'].strip()
+        plain_answer = response.choices[0].message['content'].strip()
 
         # Call the new function to format the plain text answer in Markdown
         markdown_answer = format_answer_in_markdown(plain_answer, user_question)
@@ -402,7 +402,7 @@ def format_answer_in_markdown(plain_answer, user_question):
         )
 
         # Extract the Markdown-formatted answer
-        markdown_answer = response['choices'][0]['message']['content'].strip()
+        markdown_answer = response.choices[0].message['content'].strip()
 
         return markdown_answer
 
