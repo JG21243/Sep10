@@ -1,11 +1,9 @@
 from langchain_googledrive.retrievers import GoogleDriveRetriever
+from pathlib import Path
+from langchain_community.document_loaders import GoogleDriveLoader
 
 # Extracted folder ID from the Google Drive URL
 folder_id = "1bM-uILBTV_QWmIQ_ohghyrOHfXiZO9zT"
-
-from langchain_community.document_loaders import GoogleDriveLoader
-
-from pathlib import Path
 
 # Initialize the GoogleDriveLoader with the specified paths
 loader = GoogleDriveLoader(
@@ -19,4 +17,8 @@ loader = GoogleDriveLoader(
 docs = loader.load()
 # Print the loaded documents
 print(docs)
+
+
+
+
 
