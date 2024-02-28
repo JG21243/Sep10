@@ -269,12 +269,16 @@ def create_openai_embedding(text, max_words=300):
                 model="text-embedding-ada-002",
                 input=chunk
             )
-            embeddings.append(response["data"][0]["embedding"])
-        embedding = [sum(x) / len(x) for x in zip(*embeddings)]
+            # Correctly access the embedding based on the example
+            embeddings.append(response.data[0].embedding)
+        # Calculate the average embedding if needed or directly use the embeddings as per your requirement
+        # Here, assuming you want the average embedding for the text
+        embedding = [sum(x) / len(embeddings) for x in zip(*embeddings)]
         return embedding
     except Exception as e:
         handle_error(f"Error creating OpenAI embedding: {e}")
         return None
+
 
 # Function to upsert to Annoy index
 def upsert_to_annoy(index, i, embedding, text):
