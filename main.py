@@ -351,7 +351,7 @@ def generate_answer(context_data, user_question):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-1106",
             messages=[
                 {
                     "role": "system",
@@ -384,7 +384,7 @@ def format_answer_in_markdown(plain_answer, user_question):
 
         # Make an API call to GPT-3.5 Turbo for Markdown formatting
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo-16k",
+            model="gpt-3.5-turbo-1106",
             messages=[
                 {
                     "role": "system",
