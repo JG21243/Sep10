@@ -1,13 +1,16 @@
 import logging
 import tempfile
 from openai import OpenAI
+import openai
 import pdfplumber  # Import pdfplumber instead of PyPDF2
 from annoy import AnnoyIndex
 import streamlit as st
 import sys
 from pdfminer.pdfparser import PDFSyntaxError
 
-client = OpenAI.Client()
+# Initialize the beta client
+client = openai.Client()
+
 
 st.set_page_config(
     page_title="Chat with legal docs, powered by Langchain and Unstructured. Sep 10",
