@@ -1,3 +1,4 @@
+import sys
 import logging
 import tempfile
 from openai import OpenAI
@@ -5,9 +6,7 @@ import openai
 import pdfplumber  # Import pdfplumber instead of PyPDF2
 from annoy import AnnoyIndex
 import streamlit as st
-import sys
 from pdfminer.pdfparser import PDFSyntaxError
-
 
 # Access the API key from Streamlit secrets
 openai_api_key = st.secrets["openai"]["api_key"]
