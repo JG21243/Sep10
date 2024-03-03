@@ -10,7 +10,6 @@ from pdfminer.pdfparser import PDFSyntaxError
 
 # Access the API key from Streamlit secrets
 openai_api_key = st.secrets["openai"]["api_key"]
-
 # Initialize the OpenAI client with the API key
 client = openai.Client(api_key=openai_api_key)
 
