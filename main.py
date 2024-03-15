@@ -400,7 +400,8 @@ def format_answer_in_markdown(plain_answer, user_question):
         )
 
         # Extract the Markdown-formatted answer
-        markdown_answer = response.choices[0].message['content'].strip()
+        markdown_answer = response.choices[0].message.content.strip()
+
 
         return markdown_answer
 
